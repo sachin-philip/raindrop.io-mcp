@@ -9,7 +9,7 @@ mcp = FastMCP("Raindrop-Server")
 
 # Constants
 RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1"
-token = os.environ.get("RAINDROP_TOKEN")
+RAINDROP_TOKEN = os.environ.get("RAINDROP_TOKEN")
 
 async def make_raindrop_request(url: str, token: str, method: str = "GET", data: dict = None) -> dict[str, Any] | None:
     """Make a request to the Raindrop.io API with proper error handling."""
@@ -52,7 +52,7 @@ async def get_latest_feed(count: int = 10) -> str:
         count: Number of bookmarks to fetch (default: 10)
     """
     url = f"{RAINDROP_API_BASE}/raindrops/0?perpage={count}&sort=-created"
-    data = await make_raindrop_request(url, token)
+    data = await make_raindrop_request(url, RAINDROP_TOKEN)
 
     if not data or "items" not in data:
         return "Unable to fetch bookmarks or no bookmarks found."
@@ -78,13 +78,11 @@ async def add_bookmark(url: str, title: str = "", description: str = "", tags: L
     if not url:
         return "Error: URL is required"
         
-    # Prepare the data for creating a new raindrop
     raindrop_data = {
         "link": url,
         "collection": {"$id": collection_id}
     }
     
-    # Add optional fields if provided
     if title:
         raindrop_data["title"] = title
     if description:
@@ -93,15 +91,13 @@ async def add_bookmark(url: str, title: str = "", description: str = "", tags: L
         raindrop_data["tags"] = tags
     
     endpoint = f"{RAINDROP_API_BASE}/raindrop"
-    response = await make_raindrop_request(endpoint, token, method="POST", data=raindrop_data)
+    response = await make_raindrop_request(endpoint, RAINDROP_TOKEN, method="POST", data=raindrop_data)
     
     if not response or "item" not in response:
         return "Failed to add bookmark. Please check the URL and try again."
     
-    # Return a success message with the formatted bookmark
     return f"Bookmark successfully added:\n{format_bookmark(response['item'])}"
 
 
 if __name__ == "__main__":
-    # Initialize and run the server
     mcp.run(transport='stdio')
