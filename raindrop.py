@@ -99,5 +99,56 @@ async def add_bookmark(url: str, title: str = "", description: str = "", tags: L
     return f"Bookmark successfully added:\n{format_bookmark(response['item'])}"
 
 
+@mcp.tool()
+async def search_by_tag(tag: str, collection_id: int = 0, count: int = 10) -> str:
+    """Search for bookmarks with a specific tag in Raindrop.io
+    
+    Args:
+        tag: The tag to search for (required)
+        collection_id: ID of the collection to search in (default: 0 for all collections)
+        count: Maximum number of bookmarks to return (default: 10)
+    """
+    if not tag:
+        return "Error: Tag is required"
+    
+    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search=[{{\"-tags\":\"{tag}\"}}]&sort=-created"
+    data = await make_raindrop_request(url, RAINDROP_TOKEN)
+    
+    if not data or "items" not in data:
+        return "Unable to fetch bookmarks or no bookmarks found with this tag."
+    
+    if not data["items"]:
+        return f"No bookmarks found with tag '{tag}'."
+    
+    bookmarks = [format_bookmark(item) for item in data["items"]]
+    return f"Found {len(data['items'])} bookmarks with tag '{tag}':\n\n" + "\n---\n".join(bookmarks)
+
+
+@mcp.tool()
+async def search_bookmarks(query: str, collection_id: int = 0, count: int = 10) -> str:
+    """Search for bookmarks by keyword/text in Raindrop.io
+    
+    Args:
+        query: The search term to look for in bookmarks (required)
+        collection_id: ID of the collection to search in (default: 0 for all collections)
+        count: Maximum number of bookmarks to return (default: 10)
+    """
+    if not query:
+        return "Error: Search query is required"
+    
+    # URL encode the query for safe transport
+    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search=\"{query}\"&sort=-created"
+    data = await make_raindrop_request(url, RAINDROP_TOKEN)
+    
+    if not data or "items" not in data:
+        return "Unable to fetch bookmarks or no bookmarks found for your search."
+    
+    if not data["items"]:
+        return f"No bookmarks found matching '{query}'."
+    
+    bookmarks = [format_bookmark(item) for item in data["items"]]
+    return f"Found {len(data['items'])} bookmarks matching '{query}':\n\n" + "\n---\n".join(bookmarks)
+
+
 if __name__ == "__main__":
     mcp.run(transport='stdio')
