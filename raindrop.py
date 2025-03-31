@@ -100,54 +100,89 @@ async def add_bookmark(url: str, title: str = "", description: str = "", tags: L
 
 
 @mcp.tool()
-async def search_by_tag(tag: str, collection_id: int = 0, count: int = 10) -> str:
-    """Search for bookmarks with a specific tag in Raindrop.io
+async def search_by_tag(tag: str, collection_id: int = 0, count: int = 10, from_date: str = "", to_date: str = "") -> str:
+    """Search for bookmarks with a specific tag in Raindrop.io with optional date range filtering
     
     Args:
         tag: The tag to search for (required)
         collection_id: ID of the collection to search in (default: 0 for all collections)
         count: Maximum number of bookmarks to return (default: 10)
+        from_date: Start date in YYYY-MM-DD format (optional)
+        to_date: End date in YYYY-MM-DD format (optional)
     """
     if not tag:
         return "Error: Tag is required"
     
-    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search=[{{\"-tags\":\"{tag}\"}}]&sort=-created"
+    # Build search filters
+    search_filters = [f"-tags:\"{tag}\""]
+    
+    # Add date range filters if provided
+    if from_date:
+        search_filters.append(f"created>={from_date}")
+    if to_date:
+        search_filters.append(f"created<={to_date}")
+    
+    # Combine all search filters
+    search_query = " ".join(search_filters)
+    
+    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search={search_query}&sort=-created"
     data = await make_raindrop_request(url, RAINDROP_TOKEN)
     
     if not data or "items" not in data:
         return "Unable to fetch bookmarks or no bookmarks found with this tag."
     
     if not data["items"]:
-        return f"No bookmarks found with tag '{tag}'."
+        return f"No bookmarks found with tag '{tag}' within the specified criteria."
     
     bookmarks = [format_bookmark(item) for item in data["items"]]
-    return f"Found {len(data['items'])} bookmarks with tag '{tag}':\n\n" + "\n---\n".join(bookmarks)
+    result_msg = f"Found {len(data['items'])} bookmarks with tag '{tag}'"
+    if from_date or to_date:
+        date_range = f" (Date range: {from_date or 'any'} to {to_date or 'any'})"
+        result_msg += date_range
+    return result_msg + ":\n\n" + "\n---\n".join(bookmarks)
 
 
 @mcp.tool()
-async def search_bookmarks(query: str, collection_id: int = 0, count: int = 10) -> str:
-    """Search for bookmarks by keyword/text in Raindrop.io
+async def search_bookmarks(query: str, collection_id: int = 0, count: int = 10, from_date: str = "", to_date: str = "") -> str:
+    """Search for bookmarks by keyword/text in Raindrop.io with optional date range filtering
     
     Args:
         query: The search term to look for in bookmarks (required)
         collection_id: ID of the collection to search in (default: 0 for all collections)
         count: Maximum number of bookmarks to return (default: 10)
+        from_date: Start date in YYYY-MM-DD format (optional)
+        to_date: End date in YYYY-MM-DD format (optional)
     """
     if not query:
         return "Error: Search query is required"
     
-    # URL encode the query for safe transport
-    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search=\"{query}\"&sort=-created"
+    # Build search filters
+    search_filters = [f"\"{query}\""]
+    
+    # Add date range filters if provided
+    if from_date:
+        search_filters.append(f"created>={from_date}")
+    if to_date:
+        search_filters.append(f"created<={to_date}")
+    
+    # Combine all search filters
+    search_query = " ".join(search_filters)
+    
+    url = f"{RAINDROP_API_BASE}/raindrops/{collection_id}?perpage={count}&search={search_query}&sort=-created"
     data = await make_raindrop_request(url, RAINDROP_TOKEN)
     
     if not data or "items" not in data:
         return "Unable to fetch bookmarks or no bookmarks found for your search."
     
     if not data["items"]:
-        return f"No bookmarks found matching '{query}'."
+        return f"No bookmarks found matching '{query}' within the specified criteria."
     
     bookmarks = [format_bookmark(item) for item in data["items"]]
-    return f"Found {len(data['items'])} bookmarks matching '{query}':\n\n" + "\n---\n".join(bookmarks)
+    result_msg = f"Found {len(data['items'])} bookmarks matching '{query}'"
+    if from_date or to_date:
+        date_range = f" (Date range: {from_date or 'any'} to {to_date or 'any'})"
+        result_msg += date_range
+    return result_msg + ":\n\n" + "\n---\n".join(bookmarks)
 
 
 if __name__ == "__main__":
