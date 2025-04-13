@@ -1,4 +1,5 @@
 ### Raindrop.io MCP Server
+[![smithery badge](https://smithery.ai/badge/@sachin-philip/raindrop-io-mcp)](https://smithery.ai/server/@sachin-philip/raindrop-io-mcp)
 
 ## What is Raindrop?
 
@@ -35,6 +36,14 @@
 ```
 
 3. Restart your LLM App (Claude/Cursor etc) and voila!
+
+### Installing via Smithery
+
+To install raindrop-io-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@sachin-philip/raindrop-io-mcp):
+
+```bash
+npx -y @smithery/cli install @sachin-philip/raindrop-io-mcp --client claude
+```
 
 ## Command Supported
 
