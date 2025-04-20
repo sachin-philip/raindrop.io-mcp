@@ -69,6 +69,7 @@ npx -y @smithery/cli install @sachin-philip/raindrop-io-mcp --client claude
 - Search bookmarks by tag
 - Search bookmarks by keyword/text
 
+... More to follow
 ---
 
 ## 📝 License
@@ -78,9 +79,3 @@ MIT
 
 ## 🙌 Credits
 Built by [Sachin Philip](https://github.com/sachin-philip)
-
-2. Fetch latest bookmarks
-3. Search bookmark by tag
-4. Search bookmark by query
-
-... More to follow
